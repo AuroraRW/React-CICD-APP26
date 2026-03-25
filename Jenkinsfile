@@ -82,7 +82,8 @@ pipeline{
                         aws --version
                         aws s3 ls
                         echo "Hello, S3!" > index.html
-                        aws s3 cp index.html s3://my-react-app-20260325/index.html
+                        # aws s3 cp index.html s3://my-react-app-20260325/index.html
+                        aws s3 sync build s3://my-react-app-20260325
                     '''
                 }
                 
