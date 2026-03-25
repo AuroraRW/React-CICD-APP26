@@ -1,47 +1,47 @@
 pipeline{
     agent any
-    environment{
-        NETLIFY_SITE_ID = '148ac007-e9b6-4256-b856-bd55ef5c6a0c'
-        NETLIFY_AUTH_TOKEN = credentials('myreactapp')
-    }
+    // environment{
+    //     NETLIFY_SITE_ID = '148ac007-e9b6-4256-b856-bd55ef5c6a0c'
+    //     NETLIFY_AUTH_TOKEN = credentials('myreactapp')
+    // }
     stages{
         // stage('Docker'){
         //     steps{
         //         sh 'docker build -t my-docker-image .'
         //     }
         // }
-        // stage('Build'){
-        //     agent{
-        //         docker{
-        //             image 'node:24.14.0-alpine'
-        //             reuseNode true
-        //         }
-        //     }
-        //     steps{
-        //         sh'''
-        //             ls -la
-        //             node --version
-        //             npm --version
-        //             npm install
-        //             npm run build
-        //             ls -la
-        //         '''
-        //     }
-        // }
-        // stage('Test'){
-        //     agent{
-        //         docker{
-        //             image 'node:24.14.0-alpine'
-        //             reuseNode true
-        //         }
-        //     }
-        //     steps{
-        //         sh'''
-        //             test -f build/index.html
-        //             npm test
-        //         '''
-        //     }
-        // }
+        stage('Build'){
+            agent{
+                docker{
+                    image 'node:24.14.0-alpine'
+                    reuseNode true
+                }
+            }
+            steps{
+                sh'''
+                    ls -la
+                    node --version
+                    npm --version
+                    npm install
+                    npm run build
+                    ls -la
+                '''
+            }
+        }
+        stage('Test'){
+            agent{
+                docker{
+                    image 'node:24.14.0-alpine'
+                    reuseNode true
+                }
+            }
+            steps{
+                sh'''
+                    test -f build/index.html
+                    npm test
+                '''
+            }
+        }
         // stage('Deploy'){
         //     agent{
         //         docker{
@@ -86,7 +86,6 @@ pipeline{
                         aws s3 sync build s3://my-react-app-20260325
                     '''
                 }
-                
             }
         }
     }
