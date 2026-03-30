@@ -94,7 +94,7 @@ pipeline{
                 docker{
                     image 'amazon/aws-cli'
                     reuseNode true
-                    args '--entrypoint=""'
+                    args '-u root --entrypoint=""'
                 }
             }
             steps{
@@ -102,8 +102,11 @@ pipeline{
                 {
                     sh '''
                         aws --version
-                        # aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
-                        aws ecs update-service --cluster my-react-cluster-20260330 --service my-react-service-20260330 --task-definition my-react-task-definition-json-20260330:2
+
+                        yum install jq -y
+
+                        LATEST_TD_REVISION = $(aws ecs register-task-definition --cli-input-json file://aws/task-definition.json | jq '.taskDefinition.revision')
+                        aws ecs update-service --cluster my-react-cluster-20260330 --service my-react-service-20260330 --task-definition my-react-task-definition-json-20260330:$LATEST_TD_REVISION
                     '''
                 }
             }
