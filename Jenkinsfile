@@ -1,47 +1,48 @@
 pipeline{
     agent any
-    // environment{
+    environment{
     //     NETLIFY_SITE_ID = '148ac007-e9b6-4256-b856-bd55ef5c6a0c'
     //     NETLIFY_AUTH_TOKEN = credentials('myreactapp')
-    // }
+           AWS_DEFAULT_REGION = 'us-east-2'
+    }
     stages{
         // stage('Docker'){
         //     steps{
         //         sh 'docker build -t my-docker-image .'
         //     }
         // }
-        stage('Build'){
-            agent{
-                docker{
-                    image 'node:24.14.0-alpine'
-                    reuseNode true
-                }
-            }
-            steps{
-                sh'''
-                    ls -la
-                    node --version
-                    npm --version
-                    npm install
-                    npm run build
-                    ls -la
-                '''
-            }
-        }
-        stage('Test'){
-            agent{
-                docker{
-                    image 'node:24.14.0-alpine'
-                    reuseNode true
-                }
-            }
-            steps{
-                sh'''
-                    test -f build/index.html
-                    npm test
-                '''
-            }
-        }
+        // stage('Build'){
+        //     agent{
+        //         docker{
+        //             image 'node:24.14.0-alpine'
+        //             reuseNode true
+        //         }
+        //     }
+        //     steps{
+        //         sh'''
+        //             ls -la
+        //             node --version
+        //             npm --version
+        //             npm install
+        //             npm run build
+        //             ls -la
+        //         '''
+        //     }
+        // }
+        // stage('Test'){
+        //     agent{
+        //         docker{
+        //             image 'node:24.14.0-alpine'
+        //             reuseNode true
+        //         }
+        //     }
+        //     steps{
+        //         sh'''
+        //             test -f build/index.html
+        //             npm test
+        //         '''
+        //     }
+        // }
         // stage('Deploy'){
         //     agent{
         //         docker{
@@ -66,7 +67,29 @@ pipeline{
         //     }
         // }
 
-        stage('AWS'){
+        // stage('AWS'){
+        //     agent{
+        //         docker{
+        //             image 'amazon/aws-cli'
+        //             reuseNode true
+        //             args '--entrypoint=""'
+        //         }
+        //     }
+        //     steps{
+        //         withCredentials([usernamePassword(credentialsId: 'reactAWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) 
+        //         {
+        //             // some block
+        //             sh'''
+        //                 aws --version
+        //                 aws s3 ls
+        //                 echo "Hello, S3!" > index.html
+        //                 # aws s3 cp index.html s3://my-react-app-20260325/index.html
+        //                 aws s3 sync build s3://my-react-app-20260325
+        //             '''
+        //         }
+        //     }
+        // }
+        stage('Deploy to AWS ECS'){
             agent{
                 docker{
                     image 'amazon/aws-cli'
@@ -77,16 +100,13 @@ pipeline{
             steps{
                 withCredentials([usernamePassword(credentialsId: 'reactAWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) 
                 {
-                    // some block
-                    sh'''
+                    sh '''
                         aws --version
-                        aws s3 ls
-                        echo "Hello, S3!" > index.html
-                        # aws s3 cp index.html s3://my-react-app-20260325/index.html
-                        aws s3 sync build s3://my-react-app-20260325
+                        aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
                     '''
                 }
             }
         }
+
     }
 }
