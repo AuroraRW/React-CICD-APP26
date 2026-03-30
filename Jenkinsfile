@@ -103,6 +103,7 @@ pipeline{
                     sh '''
                         aws --version
                         aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
+                        aws ecs update-service --cluster my-react-cluster-20260330 --service my-react-service-20260330 --task-definition my-react-task-definition-json-20260330:1
                     '''
                 }
             }
