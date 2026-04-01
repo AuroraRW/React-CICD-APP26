@@ -3,7 +3,10 @@ pipeline{
     environment{
     //     NETLIFY_SITE_ID = '148ac007-e9b6-4256-b856-bd55ef5c6a0c'
     //     NETLIFY_AUTH_TOKEN = credentials('myreactapp')
-           AWS_DEFAULT_REGION = 'us-east-2'
+           AWS_DOCKER_REGISTRY = '612634926349.dkr.ecr.us-east-2.amazonaws.com'
+            // your ECR repository name
+            APP_NAME = 'my-react-app'
+            AWS_DEFAULT_REGION = 'us-east-2'
     }
     stages{
         // stage('Docker'){
@@ -101,8 +104,11 @@ pipeline{
                 steps{
                     sh '''
                         dnf install -y docker
-                        docker build -t my-docker-image .
+                        docker build -t $AWS_DOCKER_REGISTRY/$APP_NAME .
                         docker images
+
+                        aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
+                        docker push $AWS_DOCKER_REGISTRY/$APP_NAME:latest
                     '''
                 }
             }
