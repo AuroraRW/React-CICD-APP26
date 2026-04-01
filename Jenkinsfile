@@ -1,19 +1,11 @@
 pipeline{
     agent any
     environment{
-    //     NETLIFY_SITE_ID = '148ac007-e9b6-4256-b856-bd55ef5c6a0c'
-    //     NETLIFY_AUTH_TOKEN = credentials('myreactapp')
-           AWS_DOCKER_REGISTRY = '612634926349.dkr.ecr.us-east-2.amazonaws.com'
-            // your ECR repository name
-            APP_NAME = 'my-react-app'
-            AWS_DEFAULT_REGION = 'us-east-2'
+        AWS_DOCKER_REGISTRY = '612634926349.dkr.ecr.us-east-2.amazonaws.com'
+        APP_NAME = 'my-react-app'
+        AWS_DEFAULT_REGION = 'us-east-2'
     }
     stages{
-        // stage('Docker'){
-        //     steps{
-        //         sh 'docker build -t my-docker-image .'
-        //     }
-        // }
         stage('Build'){
             agent{
                 docker{
@@ -46,76 +38,30 @@ pipeline{
                 '''
             }
         }
-        // stage('Deploy'){
-        //     agent{
-        //         docker{
-        //             // image 'node:24.14.0-alpine'
-        //             image 'my-docker-image'
-        //             reuseNode true
-        //         }
-        //     }
-        //     steps{
-        //         sh'''
-        //             # npm install netlify-cli
-        //             # node_modules/.bin/netlify --version
-        //             # echo "Site ID: $NETLIFY_SITE_ID"
-        //             # node_modules/.bin/netlify status
-        //             # node_modules/.bin/netlify deploy --prod --dir=build
 
-        //             netlify --version
-        //             echo "Site ID: $NETLIFY_SITE_ID"
-        //             netlify status
-        //             netlify deploy --prod --dir=build
-        //         '''
-        //     }
-        // }
-
-        // stage('AWS'){
-        //     agent{
-        //         docker{
-        //             image 'amazon/aws-cli'
-        //             reuseNode true
-        //             args '--entrypoint=""'
-        //         }
-        //     }
-        //     steps{
-        //         withCredentials([usernamePassword(credentialsId: 'reactAWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) 
-        //         {
-        //             // some block
-        //             sh'''
-        //                 aws --version
-        //                 aws s3 ls
-        //                 echo "Hello, S3!" > index.html
-        //                 # aws s3 cp index.html s3://my-react-app-20260325/index.html
-        //                 aws s3 sync build s3://my-react-app-20260325
-        //             '''
-        //         }
-        //     }
-        // }
-
-            stage('Build My Image'){
-                agent{
-                    docker{
-                        image 'amazon/aws-cli'
-                        reuseNode true
-                        args '-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=""'
-                    }
-                }
-                steps{
-                    withCredentials([usernamePassword(credentialsId: 'reactAWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) 
-                    {
-
-                        sh '''
-                            dnf install -y docker
-                            docker build -t $AWS_DOCKER_REGISTRY/$APP_NAME .
-                            docker images
-
-                            aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
-                            docker push $AWS_DOCKER_REGISTRY/$APP_NAME:latest
-                        '''
-                    }
+        stage('Build My Image'){
+            agent{
+                docker{
+                    image 'amazon/aws-cli'
+                    reuseNode true
+                    args '-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=""'
                 }
             }
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'reactAWS', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) 
+                {
+
+                    sh '''
+                        dnf install -y docker
+                        docker build -t $AWS_DOCKER_REGISTRY/$APP_NAME .
+                        docker images
+
+                        aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
+                        docker push $AWS_DOCKER_REGISTRY/$APP_NAME:latest
+                    '''
+                }
+            }
+        }
         stage('Deploy to AWS ECS'){
             agent{
                 docker{
