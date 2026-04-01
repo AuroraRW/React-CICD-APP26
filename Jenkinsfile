@@ -99,9 +99,11 @@ pipeline{
                     }
                 }
                 steps{
-                    dnf install -y docker
-                    docker build -t my-docker-image .
-                    docker images
+                    sh '''
+                        dnf install -y docker
+                        docker build -t my-docker-image .
+                        docker images
+                    '''
                 }
             }
         // stage('Deploy to AWS ECS'){
